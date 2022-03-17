@@ -4,4 +4,4 @@ RUN apt-get -y update
 RUN apt-get -y install curl
 RUN apt install -y nodejs
 RUN apt install -y npm
-RUN npm install -g ganache-cli
+RUN npm install -g ganache-cli solc
