@@ -66,7 +66,7 @@ def base_pool(alice, KaglaPool, base_coins, lp_token, registry, accounts):
 
 @pytest.fixture(scope="session")
 def base_gauge(alice, pm, lp_token):
-    RewardsOnlyGauge = pm("kagla-finance/kagla-dao-contracts@0.0.3").RewardsOnlyGauge
+    RewardsOnlyGauge = pm("kagla-finance/kagla-dao-contracts@0.0.4").RewardsOnlyGauge
     return RewardsOnlyGauge.deploy(lp_token, alice, {"from": alice})
 
 
@@ -284,25 +284,25 @@ def meta_sidechain_rebase(
 
 @pytest.fixture(scope="session")
 def kgl(alice, pm):
-    ERC20KGL = pm("kagla-finance/kagla-dao-contracts@0.0.3").ERC20KGL
+    ERC20KGL = pm("kagla-finance/kagla-dao-contracts@0.0.4").ERC20KGL
     return ERC20KGL.deploy("Dummy KGL", "KGL", 18, {"from": alice})
 
 
 @pytest.fixture(scope="session")
 def voting_escrow(alice, kgl, pm):
-    VotingEscrow = pm("kagla-finance/kagla-dao-contracts@0.0.3").VotingEscrow
+    VotingEscrow = pm("kagla-finance/kagla-dao-contracts@0.0.4").VotingEscrow
     return VotingEscrow.deploy(kgl, "veKGL", "veKGL", 1, {"from": alice})
 
 
 @pytest.fixture(scope="session")
 def gauge_controller(alice, pm, kgl, voting_escrow):
-    GaugeController = pm("kagla-finance/kagla-dao-contracts@0.0.3").GaugeController
+    GaugeController = pm("kagla-finance/kagla-dao-contracts@0.0.4").GaugeController
     return GaugeController.deploy(kgl, voting_escrow, {"from": alice})
 
 
 @pytest.fixture(scope="session")
 def minter(alice, kgl, pm, gauge_controller):
-    Minter = pm("kagla-finance/kagla-dao-contracts@0.0.3").Minter
+    Minter = pm("kagla-finance/kagla-dao-contracts@0.0.4").Minter
     minter = Minter.deploy(kgl, gauge_controller, {"from": alice})
     kgl.set_minter(minter, {"from": alice})
     return minter
