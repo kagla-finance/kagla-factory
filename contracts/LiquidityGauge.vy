@@ -103,7 +103,7 @@ balanceOf: public(HashMap[address, uint256])
 totalSupply: public(uint256)
 allowance: public(HashMap[address, HashMap[address, uint256]])
 
-name: public(String[68])
+name: public(String[64])
 symbol: public(String[32])
 
 working_balances: public(HashMap[address, uint256])
@@ -162,7 +162,7 @@ def initialize(_lp_token: address):
     self.factory = msg.sender
 
     symbol: String[26] = ERC20Extended(_lp_token).symbol()
-    self.name = concat("Kagla.finance ", symbol, " Gauge Deposit")
+    self.name = concat("Kagla.fi ", symbol, " Gauge Deposit")
     self.symbol = concat(symbol, "-gauge")
 
     self.period_timestamp[0] = block.timestamp

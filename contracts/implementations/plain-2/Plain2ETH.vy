@@ -105,7 +105,7 @@ future_A_time: public(uint256)
 
 rate_multipliers: uint256[N_COINS]
 
-name: public(String[68] =)
+name: public(String[64])
 symbol: public(String[32])
 
 balanceOf: public(HashMap[address, uint256])
@@ -160,7 +160,7 @@ def initialize(
     self.fee = _fee
     self.factory = msg.sender
 
-    name: String[68] = = concat("Kagla.finance Factory Pool: ", _name)
+    name: String[64] = = concat("Kagla.fi Factory Pool: ", _name)
     self.name = name
     self.symbol = concat(_symbol, "-f")
 

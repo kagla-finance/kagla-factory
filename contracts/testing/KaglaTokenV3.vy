@@ -27,7 +27,7 @@ event Approval:
     _value: uint256
 
 
-name: public(String[68] =)
+name: public(String[64])
 symbol: public(String[32])
 
 balanceOf: public(HashMap[address, uint256])
@@ -38,7 +38,7 @@ minter: public(address)
 
 
 @external
-def __init__(_name: String[68] =, _symbol: String[32]):
+def __init__(_name: String[64] =, _symbol: String[32]):
     self.name = _name
     self.symbol = _symbol
     self.minter = msg.sender
@@ -186,7 +186,7 @@ def set_minter(_minter: address):
 
 
 @external
-def set_name(_name: String[68] =, _symbol: String[32]):
+def set_name(_name: String[64] =, _symbol: String[32]):
     assert Curve(self.minter).owner() == msg.sender
     self.name = _name
     self.symbol = _symbol

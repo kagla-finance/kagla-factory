@@ -13,7 +13,7 @@ event Approval:
     _spender: indexed(address)
     _value: uint256
 
-name: public(String[68] =)
+name: public(String[64])
 symbol: public(String[32])
 decimals: public(uint256)
 balanceOf: public(HashMap[address, uint256])
@@ -22,7 +22,7 @@ total_supply: uint256
 
 
 @external
-def __init__(_name: String[68] =, _symbol: String[32], _decimals: uint256):
+def __init__(_name: String[64] =, _symbol: String[32], _decimals: uint256):
     self.name = _name
     self.symbol = _symbol
     self.decimals = _decimals

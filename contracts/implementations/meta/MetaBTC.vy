@@ -133,7 +133,7 @@ future_A_time: public(uint256)
 
 rate_multiplier: uint256
 
-name: public(String[68])
+name: public(String[64])
 symbol: public(String[32])
 
 balanceOf: public(HashMap[address, uint256])
@@ -179,7 +179,7 @@ def initialize(
     self.fee = _fee
     self.factory = msg.sender
 
-    name: String[68] = concat("Kagla.finance Factory BTC Metapool: ", _name)
+    name: String[64] = concat("Kagla.fi Factory BTC Metapool: ", _name)
     self.name = name
     self.symbol = concat(_symbol, "/sbtcKGL-f")
 
