@@ -67,7 +67,7 @@ def base_pool(alice, KaglaPool, base_coins, lp_token, registry, accounts):
 @pytest.fixture(scope="session")
 def base_gauge(alice, pm, lp_token):
     RewardsOnlyGauge = pm("kagla-finance/kagla-dao-contracts@0.0.4").RewardsOnlyGauge
-    return RewardsOnlyGauge.deploy(lp_token, alice, {"from": alice})
+    return RewardsOnlyGauge.deploy(alice, lp_token, {"from": alice})
 
 
 # implementation contracts - paramaterized by pool size
