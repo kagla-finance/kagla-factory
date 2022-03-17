@@ -102,7 +102,7 @@ ERC1271_MAGIC_VAL: constant(bytes32) = 0x1626ba7e0000000000000000000000000000000
 VERSION: constant(String[8]) = "v5.0.0"
 
 
-name: public(String[64])
+name: public(String[68] =)
 symbol: public(String[32])
 
 balanceOf: public(HashMap[address, uint256])
@@ -153,7 +153,7 @@ def initialize(
     self.fee = _fee
     self.factory = msg.sender
 
-    name: String[64] = concat("Kagla.finance Factory Plain Pool: ", _name)
+    name: String[68] = = concat("Kagla.finance Factory Plain Pool: ", _name)
     self.name = name
     self.symbol = concat(_symbol, "-f")
 

@@ -8,7 +8,7 @@
 event NewAddressIdentifier:
     id: indexed(uint256)
     addr: address
-    description: String[64]
+    description: String[68] =
 
 event AddressModified:
     id: indexed(uint256)
@@ -28,7 +28,7 @@ struct AddressInfo:
     is_active: bool
     version: uint256
     last_modified: uint256
-    description: String[64]
+    description: String[68] =
 
 
 registry: address
@@ -81,7 +81,7 @@ def get_address(_id: uint256) -> address:
 
 
 @external
-def add_new_id(_address: address, _description: String[64]) -> uint256:
+def add_new_id(_address: address, _description: String[68] =) -> uint256:
     """
     @notice Add a new identifier to the registry
     @dev ID is auto-incremented
