@@ -81,7 +81,7 @@ def get_address(_id: uint256) -> address:
 
 
 @external
-def add_new_id(_address: address, _description: String[64] =) -> uint256:
+def add_new_id(_address: address, _description: String[64]) -> uint256:
     """
     @notice Add a new identifier to the registry
     @dev ID is auto-incremented
