@@ -8,7 +8,7 @@
 event NewAddressIdentifier:
     id: indexed(uint256)
     addr: address
-    description: String[64] =
+    description: String[64]
 
 event AddressModified:
     id: indexed(uint256)
@@ -28,7 +28,7 @@ struct AddressInfo:
     is_active: bool
     version: uint256
     last_modified: uint256
-    description: String[64] =
+    description: String[64]
 
 
 registry: address
