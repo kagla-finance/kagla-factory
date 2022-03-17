@@ -180,7 +180,7 @@ def initialize(
     self.fee = _fee
     self.factory = msg.sender
 
-    name: String[64] = = concat("Kagla.fi Factory BTC Metapool: ", _name)
+    name: String[64] =  concat("Kagla.fi Factory BTC Metapool: ", _name)
     self.name = name
     self.symbol = concat(_symbol, "/sbtcKGL-f")
 
