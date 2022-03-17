@@ -103,7 +103,7 @@ balanceOf: public(HashMap[address, uint256])
 totalSupply: public(uint256)
 allowance: public(HashMap[address, HashMap[address, uint256]])
 
-name: public(String[64])
+name: public(String[68])
 symbol: public(String[32])
 
 working_balances: public(HashMap[address, uint256])
