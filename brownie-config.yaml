@@ -6,4 +6,5 @@ networks:
       default_balance: 1_000_000_000
       chain_id: 1337
 
-dependencies: kagla-finance/kagla-dao-contracts@0.0.4
+dependencies: kagla-finance/kagla-dao-contracts@0.0.5
+
