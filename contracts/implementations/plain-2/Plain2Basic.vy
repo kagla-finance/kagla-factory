@@ -155,7 +155,7 @@ def initialize(
     self.fee = _fee
     self.factory = msg.sender
 
-    name: String[64] = concat("Kagla.finance Factory Plain Pool: ", _name)
+    name: String[64] =  concat("Kagla.fi Factory Plain Pool: ", _name)
     self.name = name
     self.symbol = concat(_symbol, "-f")
 

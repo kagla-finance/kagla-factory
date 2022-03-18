@@ -16,8 +16,8 @@ def _plain_coins(alice, decimals):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def lp_token(alice, CurveTokenV3, accounts):
-    lp_token = CurveTokenV3.deploy("Test LP Token", "Tester", {"from": alice})
+def lp_token(alice, KaglaTokenV3, accounts):
+    lp_token = KaglaTokenV3.deploy("Test LP Token", "Tester", {"from": alice})
     setattr(
         lp_token,
         "_mint_for_testing",

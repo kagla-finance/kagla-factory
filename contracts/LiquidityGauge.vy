@@ -162,7 +162,7 @@ def initialize(_lp_token: address):
     self.factory = msg.sender
 
     symbol: String[26] = ERC20Extended(_lp_token).symbol()
-    self.name = concat("Kagla.finance ", symbol, " Gauge Deposit")
+    self.name = concat("Kagla.fi ", symbol, " Gauge Deposit")
     self.symbol = concat(symbol, "-gauge")
 
     self.period_timestamp[0] = block.timestamp
