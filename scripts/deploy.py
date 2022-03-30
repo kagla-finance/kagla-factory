@@ -18,6 +18,7 @@ gas_price = GasNowScalingStrategy("slow", "fast")
 OWNER_ADMIN = "0x40907540d8a6C65c637785e8f8B742ae6b0b9968"
 PARAM_ADMIN = "0x4EEb3bA4f221cA16ed4A0cC7254E2E32DF948c5f"
 EMERGENCY_ADMIN = "0x00669DF67E4827FCc0E48A1838a8d5AB79281909"
+GAUGE_MANAGER = "0x00669DF67E4827FCc0E48A1838a8d5AB79281909"
 
 BASE_3POOL = "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"
 BASE_SBTC = "0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714"
@@ -40,7 +41,7 @@ def main(deployer=DEPLOYER):
     )
 
     proxy = OwnerProxy.deploy(
-        OWNER_ADMIN, PARAM_ADMIN, EMERGENCY_ADMIN, {"from": deployer, "gas_price": gas_price}
+        OWNER_ADMIN, PARAM_ADMIN, EMERGENCY_ADMIN, GAUGE_MANAGER, {"from": deployer, "gas_price": gas_price}
     )
 
     factory.commit_transfer_ownership(proxy, {"from": deployer, "gas_price": gas_price})

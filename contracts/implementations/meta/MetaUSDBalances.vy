@@ -12,7 +12,7 @@ interface ERC20:
     def approve(_spender: address, _amount: uint256): nonpayable
     def balanceOf(_owner: address) -> uint256: view
 
-interface Curve:
+interface Kagla:
     def coins(i: uint256) -> address: view
     def get_virtual_price() -> uint256: view
     def calc_token_amount(amounts: uint256[BASE_N_COINS], deposit: bool) -> uint256: view
@@ -180,7 +180,7 @@ def initialize(
     self.fee = _fee
     self.factory = msg.sender
 
-    name: String[64] = concat("Kagla.finance Factory USD Metapool: ", _name)
+    name: String[64] =  concat("Kagla.fi Factory USD Metapool: ", _name)
     self.name = name
     self.symbol = concat(_symbol, "3KGL-f")
 
@@ -449,7 +449,7 @@ def get_virtual_price() -> uint256:
     """
     amp: uint256 = self._A()
     balances: uint256[N_COINS] = self._balances()
-    rates: uint256[N_COINS] = [self.rate_multiplier, Curve(BASE_POOL).get_virtual_price()]
+    rates: uint256[N_COINS] = [self.rate_multiplier, Kagla(BASE_POOL).get_virtual_price()]
     xp: uint256[N_COINS] = self._xp_mem(rates, balances)
     D: uint256 = self.get_D(xp, amp)
     # D is in the units similar to DAI (e.g. converted to precision 1e18)
@@ -470,7 +470,7 @@ def calc_token_amount(_amounts: uint256[N_COINS], _is_deposit: bool) -> uint256:
     """
     amp: uint256 = self._A()
     balances: uint256[N_COINS] = self._balances()
-    rates: uint256[N_COINS] = [self.rate_multiplier, Curve(BASE_POOL).get_virtual_price()]
+    rates: uint256[N_COINS] = [self.rate_multiplier, Kagla(BASE_POOL).get_virtual_price()]
 
     D0: uint256 = self.get_D_mem(rates, balances, amp)
     for i in range(N_COINS):
@@ -504,7 +504,7 @@ def add_liquidity(
     """
     amp: uint256 = self._A()
     old_balances: uint256[N_COINS] = self._balances()
-    rates: uint256[N_COINS] = [self.rate_multiplier, Curve(BASE_POOL).get_virtual_price()]
+    rates: uint256[N_COINS] = [self.rate_multiplier, Kagla(BASE_POOL).get_virtual_price()]
 
     # Initial invariant
     D0: uint256 = self.get_D_mem(rates, old_balances, amp)
@@ -630,7 +630,7 @@ def get_dy(i: int128, j: int128, dx: uint256) -> uint256:
     @param dx Amount of `i` being exchanged
     @return Amount of `j` predicted
     """
-    rates: uint256[N_COINS] = [self.rate_multiplier, Curve(BASE_POOL).get_virtual_price()]
+    rates: uint256[N_COINS] = [self.rate_multiplier, Kagla(BASE_POOL).get_virtual_price()]
     xp: uint256[N_COINS] = self._xp_mem(rates, self._balances())
 
     x: uint256 = xp[i] + (dx * rates[i] / PRECISION)
@@ -651,7 +651,7 @@ def get_dy_underlying(i: int128, j: int128, dx: uint256) -> uint256:
     @param dx Amount of `i` being exchanged
     @return Amount of `j` predicted
     """
-    rates: uint256[N_COINS] = [self.rate_multiplier, Curve(BASE_POOL).get_virtual_price()]
+    rates: uint256[N_COINS] = [self.rate_multiplier, Kagla(BASE_POOL).get_virtual_price()]
     xp: uint256[N_COINS] = self._xp_mem(rates, self._balances())
 
     x: uint256 = 0
@@ -676,14 +676,14 @@ def get_dy_underlying(i: int128, j: int128, dx: uint256) -> uint256:
             base_inputs: uint256[BASE_N_COINS] = empty(uint256[BASE_N_COINS])
             base_inputs[base_i] = dx
             # Token amount transformed to underlying "dollars"
-            x = Curve(BASE_POOL).calc_token_amount(base_inputs, True) * rates[1] / PRECISION
+            x = Kagla(BASE_POOL).calc_token_amount(base_inputs, True) * rates[1] / PRECISION
             # Accounting for deposit/withdraw fees approximately
-            x -= x * Curve(BASE_POOL).fee() / (2 * FEE_DENOMINATOR)
+            x -= x * Kagla(BASE_POOL).fee() / (2 * FEE_DENOMINATOR)
             # Adding number of pool tokens
             x += xp[MAX_COIN]
         else:
             # If both are from the base pool
-            return Curve(BASE_POOL).get_dy(base_i, base_j, dx)
+            return Kagla(BASE_POOL).get_dy(base_i, base_j, dx)
 
     # This pool is involved only when in-pool assets are used
     y: uint256 = self.get_y(meta_i, meta_j, x, xp)
@@ -696,7 +696,7 @@ def get_dy_underlying(i: int128, j: int128, dx: uint256) -> uint256:
     else:
         # j is from BasePool
         # The fee is already accounted for
-        dy = Curve(BASE_POOL).calc_withdraw_one_coin(dy * PRECISION / rates[1], base_j)
+        dy = Kagla(BASE_POOL).calc_withdraw_one_coin(dy * PRECISION / rates[1], base_j)
 
     return dy
 
@@ -721,7 +721,7 @@ def exchange(
     @return Actual amount of `j` received
     """
     old_balances: uint256[N_COINS] = self._balances()
-    rates: uint256[N_COINS] = [self.rate_multiplier, Curve(BASE_POOL).get_virtual_price()]
+    rates: uint256[N_COINS] = [self.rate_multiplier, Kagla(BASE_POOL).get_virtual_price()]
 
     xp: uint256[N_COINS] = self._xp_mem(rates, old_balances)
 
@@ -787,7 +787,7 @@ def exchange_underlying(
     @return Actual amount of `j` received
     """
     old_balances: uint256[N_COINS] = self._balances()
-    rates: uint256[N_COINS] = [self.rate_multiplier, Curve(BASE_POOL).get_virtual_price()]
+    rates: uint256[N_COINS] = [self.rate_multiplier, Kagla(BASE_POOL).get_virtual_price()]
     xp: uint256[N_COINS] = self._xp_mem(rates, old_balances)
 
     base_coins: address[3] = BASE_COINS
@@ -840,7 +840,7 @@ def exchange_underlying(
             coin_i: address = self.coins[MAX_COIN]
             # Deposit and measure delta
             x = ERC20(coin_i).balanceOf(self)
-            Curve(BASE_POOL).add_liquidity(base_inputs, 0)
+            Kagla(BASE_POOL).add_liquidity(base_inputs, 0)
             # Need to convert pool token to "virtual" units using rates
             # dx is also different now
             dx_w_fee = ERC20(coin_i).balanceOf(self) - x
@@ -866,7 +866,7 @@ def exchange_underlying(
         # Withdraw from the base pool if needed
         if j > 0:
             out_amount: uint256 = ERC20(output_coin).balanceOf(self)
-            Curve(BASE_POOL).remove_liquidity_one_coin(dy, base_j, 0)
+            Kagla(BASE_POOL).remove_liquidity_one_coin(dy, base_j, 0)
             dy = ERC20(output_coin).balanceOf(self) - out_amount
 
         assert dy >= _min_dy
@@ -874,7 +874,7 @@ def exchange_underlying(
     else:
         # If both are from the base pool
         dy = ERC20(output_coin).balanceOf(self)
-        Curve(BASE_POOL).exchange(base_i, base_j, dx_w_fee, _min_dy)
+        Kagla(BASE_POOL).exchange(base_i, base_j, dx_w_fee, _min_dy)
         dy = ERC20(output_coin).balanceOf(self) - dy
 
     response = raw_call(
@@ -954,7 +954,7 @@ def remove_liquidity_imbalance(
     """
     amp: uint256 = self._A()
     old_balances: uint256[N_COINS] = self._balances()
-    rates: uint256[N_COINS] = [self.rate_multiplier, Curve(BASE_POOL).get_virtual_price()]
+    rates: uint256[N_COINS] = [self.rate_multiplier, Kagla(BASE_POOL).get_virtual_price()]
     D0: uint256 = self.get_D_mem(rates, old_balances, amp)
 
     new_balances: uint256[N_COINS] = old_balances
@@ -1059,7 +1059,7 @@ def _calc_withdraw_one_coin(_burn_amount: uint256, i: int128) -> uint256[2]:
     # * Get current D
     # * Solve Eqn against y_i for D - _token_amount
     amp: uint256 = self._A()
-    rates: uint256[N_COINS] = [self.rate_multiplier, Curve(BASE_POOL).get_virtual_price()]
+    rates: uint256[N_COINS] = [self.rate_multiplier, Kagla(BASE_POOL).get_virtual_price()]
     xp: uint256[N_COINS] = self._xp_mem(rates, self._balances())
     D0: uint256 = self.get_D(xp, amp)
 

@@ -66,8 +66,8 @@ def base_pool(alice, KaglaPool, base_coins, lp_token, registry, accounts):
 
 @pytest.fixture(scope="session")
 def base_gauge(alice, pm, lp_token):
-    RewardsOnlyGauge = pm("kagla-finance/kagla-dao-contracts@0.0.3").RewardsOnlyGauge
-    return RewardsOnlyGauge.deploy(lp_token, alice, {"from": alice})
+    RewardsOnlyGauge = pm("kagla-finance/kagla-dao-contracts@0.0.5").RewardsOnlyGauge
+    return RewardsOnlyGauge.deploy(alice, lp_token, {"from": alice})
 
 
 # implementation contracts - paramaterized by pool size
@@ -284,25 +284,25 @@ def meta_sidechain_rebase(
 
 @pytest.fixture(scope="session")
 def kgl(alice, pm):
-    ERC20KGL = pm("kagla-finance/kagla-dao-contracts@0.0.3").ERC20KGL
+    ERC20KGL = pm("kagla-finance/kagla-dao-contracts@0.0.5").ERC20KGL
     return ERC20KGL.deploy("Dummy KGL", "KGL", 18, {"from": alice})
 
 
 @pytest.fixture(scope="session")
 def voting_escrow(alice, kgl, pm):
-    VotingEscrow = pm("kagla-finance/kagla-dao-contracts@0.0.3").VotingEscrow
+    VotingEscrow = pm("kagla-finance/kagla-dao-contracts@0.0.5").VotingEscrow
     return VotingEscrow.deploy(kgl, "veKGL", "veKGL", 1, {"from": alice})
 
 
 @pytest.fixture(scope="session")
 def gauge_controller(alice, pm, kgl, voting_escrow):
-    GaugeController = pm("kagla-finance/kagla-dao-contracts@0.0.3").GaugeController
+    GaugeController = pm("kagla-finance/kagla-dao-contracts@0.0.5").GaugeController
     return GaugeController.deploy(kgl, voting_escrow, {"from": alice})
 
 
 @pytest.fixture(scope="session")
 def minter(alice, kgl, pm, gauge_controller):
-    Minter = pm("kagla-finance/kagla-dao-contracts@0.0.3").Minter
+    Minter = pm("kagla-finance/kagla-dao-contracts@0.0.5").Minter
     minter = Minter.deploy(kgl, gauge_controller, {"from": alice})
     kgl.set_minter(minter, {"from": alice})
     return minter
@@ -423,7 +423,7 @@ def swap(
 
 @pytest.fixture(scope="module")
 def owner_proxy(alice, OwnerProxy):
-    return OwnerProxy.deploy(alice, alice, alice, {"from": alice})
+    return OwnerProxy.deploy(alice, alice, alice, alice, {"from": alice})
 
 
 @pytest.fixture(scope="module")
