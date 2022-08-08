@@ -1,8 +1,6 @@
 # @version 0.3.1
 """
 @title StableSwap
-
-
 @notice 3pool metapool implementation contract
 @dev ERC20 support for return True/revert, return True/False, return None
 """
@@ -92,11 +90,11 @@ event StopRampA:
     t: uint256
 
 
-BASE_POOL: constant(address) = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7
+BASE_POOL: constant(address) = 0xe5e4E9Ad8716Fe73EA440C99a92332c6328417E3
 BASE_COINS: constant(address[3]) = [
-    0x6B175474E89094C44Da98b954EedeAC495271d0F,  # DAI
-    0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,  # USDC
-    0xdAC17F958D2ee523a2206206994597C13D831ec7,  # USDT
+    0x257f1a047948f73158DaDd03eB84b34498bCDc60,  # DAI
+    0x458db3bEf6ffC5212f9359bbDAeD0D5A58129397,  # USDC
+    0xdB25FDCCe3E63B376D308dC2D46234632d9959d8,  # USDT
 ]
 
 N_COINS: constant(int128) = 2
@@ -172,7 +170,7 @@ def initialize(
     assert self.fee == 0
 
     A: uint256 = _A * A_PRECISION
-    self.coins = [_coin, 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490]
+    self.coins = [_coin, 0xb9d696ECba4A545a887e3e5FA01fbf32582B926C]
     self.rate_multiplier = _rate_multiplier
     self.initial_A = A
     self.future_A = A
@@ -337,12 +335,30 @@ def _A() -> uint256:
     else:  # when t1 == 0 or block.timestamp >= t1
         return A1
 
+@view
+@internal
+def _admin_fee() -> uint256:
+    return ADMIN_FEE
 
 @view
 @external
 def admin_fee() -> uint256:
-    return ADMIN_FEE
+    return self._admin_fee()
 
+@view
+@external
+def future_admin_fee() -> uint256:
+    return self._admin_fee()
+
+@view
+@external
+def future_fee() -> uint256:
+    return self.fee
+
+@view
+@external
+def future_owner() -> address:
+    return ZERO_ADDRESS
 
 @view
 @external

@@ -89,11 +89,11 @@ TOKENLESS_PRODUCTION: constant(uint256) = 40
 WEEK: constant(uint256) = 604800
 CLAIM_FREQUENCY: constant(uint256) = 3600
 
-MINTER: constant(address) = 0xd061D61a4d941c39E5453435B6345Dc261C2fcE0
-KGL: constant(address) = 0xD533a949740bb3306d119CC777fa900bA034cd52
-VOTING_ESCROW: constant(address) = 0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2
-GAUGE_CONTROLLER: constant(address) = 0x2F50D538606Fa9EDD2B11E2446BEb18C9D5846bB
-VEBOOST_PROXY: constant(address) = 0x8E0c00ed546602fD9927DF742bbAbF726D5B0d16
+MINTER: constant(address) = 0xa6358181b2753DAC5d2Ade97519E7c1A766d9c87
+KGL: constant(address) = 0x5aA6012602d722C29FeD77cFa1A7C0717E92F3E0
+VOTING_ESCROW: constant(address) = 0x9790387C4330A76B3bC9DB4Ae9d80F4099f03024
+GAUGE_CONTROLLER: constant(address) = 0xfe372d95BDFE7313435D539c87E68029A792997e
+#VEBOOST_PROXY: constant(address) = 0x8E0c00ed546602fD9927DF742bbAbF726D5B0d16
 
 
 lp_token: public(address)
@@ -198,7 +198,8 @@ def _update_liquidity_limit(addr: address, l: uint256, L: uint256):
     @param L Total amount of liquidity (LP tokens)
     """
     # To be called after totalSupply is updated
-    voting_balance: uint256 = VotingEscrowBoost(VEBOOST_PROXY).adjusted_balance_of(addr)
+    #voting_balance: uint256 = VotingEscrowBoost(VEBOOST_PROXY).adjusted_balance_of(addr)
+    voting_balance: uint256 = ERC20(VOTING_ESCROW).balanceOf(addr)
     voting_total: uint256 = ERC20(VOTING_ESCROW).totalSupply()
 
     lim: uint256 = l * TOKENLESS_PRODUCTION / 100
