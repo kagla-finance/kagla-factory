@@ -17,7 +17,6 @@ def initial_setup(
     gauge_controller,
 ):
     # gauge setup
-    gauge_controller.add_type(b"Liquidity", 10 ** 10, {"from": alice})
     gauge_controller.add_gauge(gauge, 0, 0, {"from": alice})
 
     # deposit into gauge

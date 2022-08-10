@@ -6,7 +6,6 @@ import pytest
 @pytest.fixture(autouse=True)
 def setup(add_initial_liquidity, alice, gauge_controller, minter, gauge, swap):
 
-    gauge_controller.add_type(b"Liquidity", 10 ** 10, {"from": alice})
     gauge_controller.add_gauge(gauge, 0, 0, {"from": alice})
 
     swap.approve(gauge, 2 ** 256 - 1, {"from": alice})

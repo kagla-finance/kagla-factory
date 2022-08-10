@@ -23,8 +23,8 @@ def address_provider(alice, AddressProvider, base_coins):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def registry(alice, address_provider, Registry):
-    registry = Registry.deploy(address_provider, ZERO_ADDRESS, {"from": alice})
+def registry(alice, address_provider, gauge_controller, Registry):
+    registry = Registry.deploy(address_provider, gauge_controller, {"from": alice})
     address_provider.set_address(0, registry, {"from": alice})
     return registry
 
@@ -66,7 +66,7 @@ def base_pool(alice, KaglaPool, base_coins, lp_token, registry, accounts):
 
 @pytest.fixture(scope="session")
 def base_gauge(alice, pm, lp_token):
-    RewardsOnlyGauge = pm("kagla-finance/kagla-dao-contracts@0.0.5").RewardsOnlyGauge
+    RewardsOnlyGauge = pm("kagla-finance/kagla-dao-contracts@0.0.8").RewardsOnlyGauge
     return RewardsOnlyGauge.deploy(alice, lp_token, {"from": alice})
 
 
@@ -193,7 +193,7 @@ def meta_btc_rebase(alice, MetaBTCBalances, base_pool, base_coins, lp_token, pyt
 
 
 @pytest.fixture(scope="session")
-def meta_usd_rebase(alice, MetaUSDBalances, base_pool, base_coins, lp_token, pytestconfig):
+def meta_usd_rebase(alice, MetaUSDBalances, base_pool, base_coins, lp_token, set_gauge_implementation, pytestconfig):
     meta_usd_rebase_abi = pytestconfig.cache.get("meta_usd_rebase_abi", False)
     meta_usd_rebase_bytecode = pytestconfig.cache.get("meta_usd_rebase_bytecode", False)
     if meta_usd_rebase_abi and meta_usd_rebase_bytecode:
@@ -284,25 +284,28 @@ def meta_sidechain_rebase(
 
 @pytest.fixture(scope="session")
 def kgl(alice, pm):
-    ERC20KGL = pm("kagla-finance/kagla-dao-contracts@0.0.5").ERC20KGL
+    ERC20KGL = pm("kagla-finance/kagla-dao-contracts@0.0.8").ERC20KGL
     return ERC20KGL.deploy("Dummy KGL", "KGL", 18, {"from": alice})
 
 
 @pytest.fixture(scope="session")
 def voting_escrow(alice, kgl, pm):
-    VotingEscrow = pm("kagla-finance/kagla-dao-contracts@0.0.5").VotingEscrow
+    VotingEscrow = pm("kagla-finance/kagla-dao-contracts@0.0.8").VotingEscrow
     return VotingEscrow.deploy(kgl, "veKGL", "veKGL", 1, {"from": alice})
 
 
 @pytest.fixture(scope="session")
 def gauge_controller(alice, pm, kgl, voting_escrow):
-    GaugeController = pm("kagla-finance/kagla-dao-contracts@0.0.5").GaugeController
-    return GaugeController.deploy(kgl, voting_escrow, {"from": alice})
+    GaugeController = pm("kagla-finance/kagla-dao-contracts@0.0.8").GaugeController
+    controller = GaugeController.deploy(kgl, voting_escrow, {"from": alice})
+    controller.add_type(b"Liquidity", 10 ** 10, {"from": alice})
+    return controller
+
 
 
 @pytest.fixture(scope="session")
 def minter(alice, kgl, pm, gauge_controller):
-    Minter = pm("kagla-finance/kagla-dao-contracts@0.0.5").Minter
+    Minter = pm("kagla-finance/kagla-dao-contracts@0.0.8").Minter
     minter = Minter.deploy(kgl, gauge_controller, {"from": alice})
     kgl.set_minter(minter, {"from": alice})
     return minter
@@ -351,7 +354,7 @@ def meta_implementations(
 
 
 @pytest.fixture(scope="session")
-def factory(alice, frank, Factory, address_provider, gauge_controller, pytestconfig):
+def factory(alice, frank, Factory, address_provider, gauge_controller, registry, pytestconfig):
     # if factory_bytecode := pytestconfig.cache.get("factory_bytecode", False):
     #     tx = alice.transfer(data=factory_bytecode)
     #     return Factory.at(tx.contract_address)
@@ -359,7 +362,11 @@ def factory(alice, frank, Factory, address_provider, gauge_controller, pytestcon
     source = Factory._build["source"]
     NewFactory = compile_source(source).Vyper
     # pytestconfig.cache.set("factory_bytecode", NewFactory.deploy.encode_input(frank))
-    return NewFactory.deploy(frank, address_provider, gauge_controller,{"from": alice})
+    factory = NewFactory.deploy(frank, address_provider, gauge_controller, {"from": alice})
+    gauge_controller.commit_transfer_ownership(factory, {"from": alice})
+    gauge_controller.apply_transfer_ownership({"from": alice})
+    registry.set_factory(factory, {"from": alice})
+    return factory
 
 
 # Mock contracts
@@ -400,7 +407,6 @@ def swap(
     else:
         if factory.pool_count() != 0:
             return state._find_contract(factory.pool_list(0))
-
         tx = factory.deploy_metapool(
             base_pool,
             "Test Meta Pool",
@@ -411,8 +417,8 @@ def swap(
             meta_implementation_idx,
             {"from": alice},
         )
-        key = convert.to_address(HexBytes(web3.eth.get_code(tx.return_value))[10:30].hex())
-        instance = Contract.from_abi("Meta Instance", tx.return_value, meta_contracts[key])
+        key = convert.to_address(HexBytes(web3.eth.get_code(tx.return_value[0]))[10:30].hex())
+        instance = Contract.from_abi("Meta Instance", tx.return_value[0], meta_contracts[key])
         instance._build["language"] = "Vyper"
         state._add_contract(instance)
         return instance

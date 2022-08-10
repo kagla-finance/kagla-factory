@@ -1,4 +1,4 @@
-# @version 0.2.15
+# @version 0.2.11
 """
 @title Kagla Registry Mock
 
@@ -95,8 +95,8 @@ event PoolAdded:
 event PoolRemoved:
     pool: indexed(address)
 
-
 address_provider: public(AddressProvider)
+factory: public(address)
 gauge_controller: public(address)
 pool_list: public(address[65536])   # master list of pools
 pool_count: public(uint256)         # actual length of pool_list
@@ -337,6 +337,7 @@ def find_pool_for_coins(_from: address, _to: address, i: uint256 = 0) -> address
     """
     key: uint256 = bitwise_xor(convert(_from, uint256), convert(_to, uint256))
     return self.markets[key][i]
+
 
 
 @view
@@ -659,6 +660,15 @@ def get_pool_asset_type(_pool: address) -> uint256:
     """
     return self.pool_data[_pool].asset_type
 
+@view
+@external
+def get_base_pool(_pool: address) -> address:
+    """
+    @notice Query the base pool of `_pool`
+    @param _pool Pool Address
+    @return The base pool
+    """
+    return self.pool_data[_pool].base_pool
 
 # internal functionality used in admin setters
 
@@ -673,7 +683,7 @@ def _add_pool(
     _is_v1: bool,
     _name: String[64],
 ):
-    assert _sender == self.address_provider.admin()  # dev: admin-only function
+    assert _sender in [self.address_provider.admin(), self.factory]  # dev: admin-only function
     assert _lp_token != ZERO_ADDRESS
     assert self.pool_data[_pool].coins[0] == ZERO_ADDRESS  # dev: pool exists
     assert self.get_pool_from_lp_token[_lp_token] == ZERO_ADDRESS
@@ -870,6 +880,12 @@ def _remove_market(_pool: address, _coina: address, _coinb: address):
 
 
 # admin functions
+
+@external
+def set_factory(_factory: address):
+    assert msg.sender == self.address_provider.admin()  # dev: admin-only function
+    self.factory = _factory
+
 
 @external
 def add_pool(
@@ -1195,7 +1211,7 @@ def set_liquidity_gauges(_pool: address, _liquidity_gauges: address[10]):
     @param _pool Pool address
     @param _liquidity_gauges Liquidity gauge address
     """
-    assert msg.sender == self.address_provider.admin()  # dev: admin-only function
+    assert msg.sender in [self.address_provider.admin(), self.factory]  # dev: admin-only function
 
     _lp_token: address = self.get_lp_token[_pool]
     _gauge_controller: address = self.gauge_controller
@@ -1225,21 +1241,4 @@ def set_pool_asset_type(_pool: address, _asset_type: uint256):
     assert msg.sender == self.address_provider.admin()  # dev: admin-only function
 
     self.pool_data[_pool].asset_type = _asset_type
-    self.last_updated = block.timestamp
-
-
-@external
-def batch_set_pool_asset_type(_pools: address[32], _asset_types: uint256[32]):
-    """
-    @notice Batch set the asset type name for kagla pools
-    @dev This is a simple way of setting the cache of categories instead of
-        performing some computation for no reason. Pool's don't necessarily
-        change once they are deployed.
-    """
-    assert msg.sender == self.address_provider.admin()  # dev: admin-only function
-
-    for i in range(32):
-        if _pools[i] == ZERO_ADDRESS:
-            break
-        self.pool_data[_pools[i]].asset_type = _asset_types[i]
     self.last_updated = block.timestamp
