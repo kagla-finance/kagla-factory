@@ -90,11 +90,11 @@ event StopRampA:
     t: uint256
 
 
-BASE_POOL: constant(address) = 0xe5e4E9Ad8716Fe73EA440C99a92332c6328417E3
+BASE_POOL: constant(address) = 0x247f10E06536dD774f11FA5F8309C21b6647FC9a
 BASE_COINS: constant(address[3]) = [
-    0x257f1a047948f73158DaDd03eB84b34498bCDc60,  # DAI
-    0x458db3bEf6ffC5212f9359bbDAeD0D5A58129397,  # USDC
-    0xdB25FDCCe3E63B376D308dC2D46234632d9959d8,  # USDT
+    0x6De33698e9e9b787e09d3Bd7771ef63557E148bb,  # DAI
+    0x6a2d262D56735DbA19Dd70682B39F6bE9a931D98,  # USDC
+    0x3795C36e7D12A8c252A20C5a7B455f7c57b60283,  # USDT
 ]
 
 N_COINS: constant(int128) = 2
@@ -170,7 +170,7 @@ def initialize(
     assert self.fee == 0
 
     A: uint256 = _A * A_PRECISION
-    self.coins = [_coin, 0xb9d696ECba4A545a887e3e5FA01fbf32582B926C]
+    self.coins = [_coin, 0x11baa439EFf75B80a72b889e171d6E95FB39ee11]
     self.rate_multiplier = _rate_multiplier
     self.initial_A = A
     self.future_A = A
