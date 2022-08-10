@@ -117,11 +117,11 @@ def _replace_btc(source, base_pool, base_coins, lp_token):
 
 def _replace_usd(source, base_pool, base_coins, lp_token):
     real_addrs = [
-        "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",  # pool addr
-        "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",  # lp token
-        "0x6B175474E89094C44Da98b954EedeAC495271d0F",  # DAI
-        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",  # USDC
-        "0xdAC17F958D2ee523a2206206994597C13D831ec7",  # USDT
+        "0xeB97BC7C4ca99Fa8078fF879905338517821B9F5",  # pool addr
+        "0x11baa439EFf75B80a72b889e171d6E95FB39ee11",  # lp token
+        "0x6De33698e9e9b787e09d3Bd7771ef63557E148bb",  # DAI
+        "0x6a2d262D56735DbA19Dd70682B39F6bE9a931D98",  # USDC
+        "0x3795C36e7D12A8c252A20C5a7B455f7c57b60283",  # USDT
     ]
     replacements = [base_pool, lp_token] + base_coins
     for old, new in zip(real_addrs, replacements):
@@ -314,10 +314,10 @@ def gauge_implementation(
 ):
     source = LiquidityGauge._build["source"]
     old_addrs = [
-        "0xd061D61a4d941c39E5453435B6345Dc261C2fcE0",  # minter
-        "0xD533a949740bb3306d119CC777fa900bA034cd52",  # kgl
-        "0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2",  # voting escrow
-        "0x2F50D538606Fa9EDD2B11E2446BEb18C9D5846bB",  # gauge controller
+        "0x210c5BE93182d02A666392996f62244001e6E04d",  # minter
+        "0x257f1a047948f73158DaDd03eB84b34498bCDc60",  # kgl
+        "0x432c8199F548425F7d5746416D98126E521e8174",  # voting escrow
+        "0x1f857fB3bCb72F03cB210f62602fD45eE1caeBdf",  # gauge controller
         "0x8E0c00ed546602fD9927DF742bbAbF726D5B0d16",  # veboost proxy
     ]
     for old, new in zip(
@@ -351,18 +351,15 @@ def meta_implementations(
 
 
 @pytest.fixture(scope="session")
-def factory(alice, frank, Factory, address_provider, pytestconfig):
+def factory(alice, frank, Factory, address_provider, gauge_controller, pytestconfig):
     # if factory_bytecode := pytestconfig.cache.get("factory_bytecode", False):
     #     tx = alice.transfer(data=factory_bytecode)
     #     return Factory.at(tx.contract_address)
 
     source = Factory._build["source"]
-    new_source = source.replace(
-        "0x0000000022D53366457F9d5E68Ec105046FC4383", address_provider.address
-    )
-    NewFactory = compile_source(new_source).Vyper
+    NewFactory = compile_source(source).Vyper
     # pytestconfig.cache.set("factory_bytecode", NewFactory.deploy.encode_input(frank))
-    return NewFactory.deploy(frank, {"from": alice})
+    return NewFactory.deploy(frank, address_provider, gauge_controller,{"from": alice})
 
 
 # Mock contracts

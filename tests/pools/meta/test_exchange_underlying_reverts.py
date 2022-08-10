@@ -25,8 +25,8 @@ def test_insufficient_balance(
     bob, swap, underlying_coins, underlying_decimals, sending, receiving
 ):  # noqa
     amount = 10 ** underlying_decimals[sending]
-
-    if (balance := underlying_coins[sending].balanceOf(bob)) > 0:
+    balance = underlying_coins[sending].balanceOf(bob)
+    if balance > 0:
         underlying_coins[sending].transfer(ETH_ADDRESS, balance, {"from": bob})
 
     underlying_coins[sending]._mint_for_testing(bob, amount, {"from": bob})

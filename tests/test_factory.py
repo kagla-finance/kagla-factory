@@ -192,49 +192,6 @@ def test_deploy_metapool(MetaUSD, new_factory, new_factory_setup, base_pool, bob
     assert new_factory.get_decimals(swap) == [7, 18, 0, 0]
 
 
-@pytest.mark.skip
-def test_add_existing_metapools(
-    factory, new_factory, fee_receiver, implementation_usd, base_pool, alice
-):
-    assert new_factory.pool_count() == 0
-    # add existing USD pools to new factory
-    new_factory.add_base_pool(
-        base_pool, fee_receiver, 0, [implementation_usd] + [ZERO_ADDRESS] * 9, {"from": alice}
-    )
-    new_factory.add_existing_metapools(
-        ["0x5a6A4D54456819380173272A5E8E9B9904BdF41B", "0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c"]
-        + [ZERO_ADDRESS] * 8
-    )
-    assert new_factory.pool_count() == 2
-    assert new_factory.pool_list(0) == "0x5a6A4D54456819380173272A5E8E9B9904BdF41B"
-    assert new_factory.pool_list(1) == "0x43b4FdFD4Ff969587185cDB6f0BD875c5Fc83f8c"
-    assert (
-        new_factory.get_implementation_address("0x5a6A4D54456819380173272A5E8E9B9904BdF41B")
-        == "0x5F890841f657d90E081bAbdB532A05996Af79Fe6"
-    )
-
-
-@pytest.mark.skip
-def test_add_existing_metapools_unknown_pool(swap, new_factory):
-    with brownie.reverts("dev: pool not in old factory"):
-        new_factory.add_existing_metapools([swap] + [ZERO_ADDRESS] * 9)
-
-
-@pytest.mark.skip
-def test_add_existing_metapools_duplicate_pool(
-    new_factory, base_pool, implementation_usd, fee_receiver, alice
-):
-    new_factory.add_base_pool(
-        base_pool, fee_receiver, 0, [implementation_usd] + [ZERO_ADDRESS] * 9, {"from": alice}
-    )
-    new_factory.add_existing_metapools(
-        ["0x5a6A4D54456819380173272A5E8E9B9904BdF41B"] + [ZERO_ADDRESS] * 9
-    )
-    with brownie.reverts("dev: pool already exists"):
-        new_factory.add_existing_metapools(
-            ["0x5a6A4D54456819380173272A5E8E9B9904BdF41B"] + [ZERO_ADDRESS] * 9
-        )
-
 
 def test_deploy_plain_pool(
     new_factory_setup, new_factory, decimals, bob, plain_basic, project, coins
