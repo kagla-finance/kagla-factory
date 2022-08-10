@@ -9,8 +9,10 @@ pytestmark = pytest.mark.usefixtures("add_initial_liquidity", "approve_bob", "mi
 
 
 @pytest.fixture
-def new_factory(alice, Factory, frank):
-    return Factory.deploy(frank, {"from": alice})
+def new_factory(alice, Factory, frank, address_provider, gauge_controller_proxy):
+    factory = Factory.deploy(frank, address_provider, gauge_controller_proxy, {"from": alice})
+    gauge_controller_proxy.set_factory(factory, {"from": alice})
+    return factory
 
 
 @pytest.fixture

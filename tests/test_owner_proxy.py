@@ -19,8 +19,10 @@ def setup(alice, factory, owner_proxy):
 
 
 @pytest.fixture
-def new_factory(Factory, alice):
-    return Factory.deploy(alice, {"from": alice})
+def new_factory(Factory, alice, address_provider, gauge_controller_proxy):
+    factory = Factory.deploy(alice, address_provider, gauge_controller_proxy, {"from": alice})
+    gauge_controller_proxy.set_factory(alice, {"from": alice})
+    return factory
 
 
 @pytest.fixture

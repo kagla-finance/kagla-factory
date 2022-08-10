@@ -26,10 +26,8 @@ interface AddressProvider:
     def admin() -> address: view
     def get_registry() -> address: view
 
-interface GaugeController:
+interface GaugeControllerProxy:
     def add_gauge(addr: address, gauge_type: int128, weight: uint256): nonpayable
-    def commit_transfer_ownership(addr: address): nonpayable
-    def apply_transfer_ownership(): nonpayable
 
 interface Registry:
     def get_lp_token(pool: address) -> address: view
@@ -127,7 +125,7 @@ OLD_FACTORY: constant(address) = 0x0959158b6040D32d04c301A72CBFD6b39E21c9AE
 admin: public(address)
 future_admin: public(address)
 manager: public(address)
-gauge_controller: public(address)
+gauge_controller_proxy: public(address)
 
 pool_list: public(address[4294967296])   # master list of pools
 pool_count: public(uint256)              # actual length of pool_list
@@ -161,12 +159,12 @@ market_counts: HashMap[uint256, uint256]
 
 
 @external
-def __init__(_fee_receiver: address, _address_provider: address, _gauge_controller: address):
+def __init__(_fee_receiver: address, _address_provider: address, _gauge_controller_proxy: address):
     self.admin = msg.sender
     self.manager = msg.sender
     self.fee_receiver = _fee_receiver
     self.address_provider = _address_provider
-    self.gauge_controller = _gauge_controller
+    self.gauge_controller_proxy = _gauge_controller_proxy
 
 
 # <--- Factory Getters --->
@@ -718,7 +716,7 @@ def deploy_metapool(
     gauge: address = self._deploy_gauge(pool)
     registry: address = AddressProvider(self.address_provider).get_registry()
     Registry(registry).add_metapool(pool, 2, pool, 0, _name, _base_pool)
-    GaugeController(self.gauge_controller).add_gauge(gauge, 0, 0)
+    GaugeControllerProxy(self.gauge_controller_proxy).add_gauge(gauge, 0, 0)
     gauges: address[10] = empty(address[10])
     gauges[0] = gauge
     Registry(registry).set_liquidity_gauges(pool, gauges)
@@ -884,16 +882,6 @@ def set_manager(_manager: address):
 
 
 @external
-def commit_transfer_gauge_controller_ownership(addr: address):
-    assert msg.sender in [self.manager, self.admin]  # dev: admin-only function
-    GaugeController(self.gauge_controller).commit_transfer_ownership(addr)
-
-@external
-def apply_transfer_gauge_controller_ownership():
-    assert msg.sender in [self.manager, self.admin]  # dev: admin-only function
-    GaugeController(self.gauge_controller).apply_transfer_ownership()
-
-@external
 def set_fee_receiver(_base_pool: address, _fee_receiver: address):
     """
     @notice Set fee receiver for base and plain pools
@@ -924,4 +912,3 @@ def convert_metapool_fees() -> bool:
 
     KaglaPool(msg.sender).exchange(0, 1, amount, 0, receiver)
     return True
-
