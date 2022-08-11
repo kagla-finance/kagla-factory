@@ -63,6 +63,11 @@ def __init__():
 
 
 @external
+@payable
+def fund():
+    pass
+
+@external
 def add_liquidity(
     _pool: address,
     _deposit_amounts: uint256[N_ALL_COINS],

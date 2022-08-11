@@ -147,7 +147,6 @@ def __init__():
     # we do this to prevent the implementation contract from being used as a pool
     self.fee = 31337
 
-
 @external
 def initialize(
     _name: String[32],
@@ -170,7 +169,7 @@ def initialize(
     assert self.fee == 0
 
     A: uint256 = _A * A_PRECISION
-    self.coins = [_coin, 0x11baa439EFf75B80a72b889e171d6E95FB39ee11]
+    self.coins = [_coin, 0x18BDb86E835E9952cFaA844EB923E470E832Ad58]
     self.rate_multiplier = _rate_multiplier
     self.initial_A = A
     self.future_A = A

@@ -725,6 +725,11 @@ def deploy_metapool(
 
 
 @external
+@payable
+def fund():
+    pass
+
+@external
 def deploy_gauge(_pool: address) -> address:
     return self._deploy_gauge(_pool)
 
