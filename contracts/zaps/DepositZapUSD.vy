@@ -40,12 +40,12 @@ N_ALL_COINS: constant(int128) = N_COINS + BASE_N_COINS - 1
 FEE_DENOMINATOR: constant(uint256) = 10 ** 10
 FEE_IMPRECISION: constant(uint256) = 100 * 10 ** 8  # % of the fee
 
-BASE_POOL: constant(address) = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7
-BASE_LP_TOKEN: constant(address) = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490
+BASE_POOL: constant(address) = 0xeB97BC7C4ca99Fa8078fF879905338517821B9F5
+BASE_LP_TOKEN: constant(address) = 0x18BDb86E835E9952cFaA844EB923E470E832Ad58
 BASE_COINS: constant(address[3]) = [
-    0x6B175474E89094C44Da98b954EedeAC495271d0F,  # DAI
-    0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,  # USDC
-    0xdAC17F958D2ee523a2206206994597C13D831ec7,  # USDT
+    0x6De33698e9e9b787e09d3Bd7771ef63557E148bb,  # DAI
+    0x6a2d262D56735DbA19Dd70682B39F6bE9a931D98,  # USDC
+    0x3795C36e7D12A8c252A20C5a7B455f7c57b60283,  # USDT
 ]
 
 # coin -> pool -> is approved to transfer?
@@ -61,6 +61,11 @@ def __init__():
     for coin in base_coins:
         ERC20(coin).approve(BASE_POOL, MAX_UINT256)
 
+
+@external
+@payable
+def fund():
+    pass
 
 @external
 def add_liquidity(

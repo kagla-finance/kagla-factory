@@ -90,9 +90,11 @@ def pytest_generate_tests(metafunc):
     if "meta_implementation_idx" in metafunc.fixturenames:
         metafunc.parametrize(
             "meta_implementation_idx",
-            [0, 1],
+            #[0, 1],
+            [0],
             indirect=True,
-            ids=[f"(Meta-Implementation={i})" for i in ["Standard", "Rebase"]],
+            #ids=[f"(Meta-Implementation={i})" for i in ["Standard", "Rebase"]],
+            ids=[f"(Meta-Implementation={i})" for i in ["Standard"]],
         )
 
 

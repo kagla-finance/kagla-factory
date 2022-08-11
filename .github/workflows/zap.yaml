@@ -3,10 +3,9 @@ name: zap
 on: ["push", "pull_request"]
 
 env:
-  ETHERSCAN_TOKEN: 9MKURTHE8FNA9NRUUJBHMUEVY6IQ5K1EGY
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  WEB3_INFURA_PROJECT_ID: 4b7217c6901c42f2bd9e8509baa0699d
+  GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
   NODE_OPTIONS: --max_old_space_size=4096
+
 
 jobs:
   unitary:

@@ -14,11 +14,12 @@ def initial_setup(
     coin_reward,
     swap,
     gauge,
-    gauge_controller,
+    gauge_controller_proxy,
+    factory,
 ):
+
     # gauge setup
-    gauge_controller.add_type(b"Liquidity", 10 ** 10, {"from": alice})
-    gauge_controller.add_gauge(gauge, 0, 0, {"from": alice})
+    gauge_controller_proxy.add_gauge(gauge, 0, 0, {"from": alice})
 
     # deposit into gauge
     swap.transfer(bob, LP_AMOUNT, {"from": alice})

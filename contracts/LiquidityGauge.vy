@@ -33,9 +33,6 @@ interface VotingEscrow:
     def user_point_epoch(addr: address) -> uint256: view
     def user_point_history__ts(addr: address, epoch: uint256) -> uint256: view
 
-interface VotingEscrowBoost:
-    def adjusted_balance_of(_account: address) -> uint256: view
-
 interface ERC20Extended:
     def symbol() -> String[26]: view
 
@@ -89,11 +86,10 @@ TOKENLESS_PRODUCTION: constant(uint256) = 40
 WEEK: constant(uint256) = 604800
 CLAIM_FREQUENCY: constant(uint256) = 3600
 
-MINTER: constant(address) = 0xd061D61a4d941c39E5453435B6345Dc261C2fcE0
-KGL: constant(address) = 0xD533a949740bb3306d119CC777fa900bA034cd52
-VOTING_ESCROW: constant(address) = 0x5f3b5DfEb7B28CDbD7FAba78963EE202a494e2A2
-GAUGE_CONTROLLER: constant(address) = 0x2F50D538606Fa9EDD2B11E2446BEb18C9D5846bB
-VEBOOST_PROXY: constant(address) = 0x8E0c00ed546602fD9927DF742bbAbF726D5B0d16
+MINTER: constant(address) = 0x210c5BE93182d02A666392996f62244001e6E04d
+KGL: constant(address) = 0x257f1a047948f73158DaDd03eB84b34498bCDc60
+VOTING_ESCROW: constant(address) = 0x432c8199F548425F7d5746416D98126E521e8174
+GAUGE_CONTROLLER: constant(address) = 0x1f857fB3bCb72F03cB210f62602fD45eE1caeBdf
 
 
 lp_token: public(address)
@@ -198,7 +194,7 @@ def _update_liquidity_limit(addr: address, l: uint256, L: uint256):
     @param L Total amount of liquidity (LP tokens)
     """
     # To be called after totalSupply is updated
-    voting_balance: uint256 = VotingEscrowBoost(VEBOOST_PROXY).adjusted_balance_of(addr)
+    voting_balance: uint256 = ERC20(VOTING_ESCROW).balanceOf(addr)
     voting_total: uint256 = ERC20(VOTING_ESCROW).totalSupply()
 
     lim: uint256 = l * TOKENLESS_PRODUCTION / 100

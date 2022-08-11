@@ -1,8 +1,6 @@
 # @version 0.2.15
 """
 @title Kagla Factory
-
-
 @notice Permissionless pool deployer and registry
 """
 
@@ -24,16 +22,28 @@ struct BasePoolArray:
     n_coins: uint256
     asset_type: uint256
 
-
 interface AddressProvider:
     def admin() -> address: view
     def get_registry() -> address: view
+
+interface GaugeControllerProxy:
+    def add_gauge(addr: address, gauge_type: int128, weight: uint256): nonpayable
 
 interface Registry:
     def get_lp_token(pool: address) -> address: view
     def get_n_coins(pool: address) -> uint256: view
     def get_coins(pool: address) -> address[MAX_COINS]: view
     def get_pool_from_lp_token(lp_token: address) -> address: view
+    def add_metapool(
+    _pool: address,
+    _n_coins: uint256,
+    _lp_token: address,
+    _decimals: uint256,
+    _name: String[64],
+    _base_pool: address
+    ): nonpayable
+    def set_liquidity_gauges(_pool: address, _liquidity_gauges: address[10]): nonpayable
+
 
 interface ERC20:
     def balanceOf(_addr: address) -> uint256: view
@@ -84,7 +94,6 @@ interface OldFactory:
 interface LiquidityGauge:
     def initialize(_lp_token: address): nonpayable
 
-
 event BasePoolAdded:
     base_pool: address
 
@@ -95,11 +104,14 @@ event PlainPoolDeployed:
     deployer: address
 
 event MetaPoolDeployed:
+    pool: address
+    name: String[32]
     coin: address
     base_pool: address
     A: uint256
     fee: uint256
     deployer: address
+    gauge: address
 
 event LiquidityGaugeDeployed:
     pool: address
@@ -108,12 +120,12 @@ event LiquidityGaugeDeployed:
 
 MAX_COINS: constant(int128) = 8
 MAX_PLAIN_COINS: constant(int128) = 4  # max coins in a plain pool
-ADDRESS_PROVIDER: constant(address) = 0x0000000022D53366457F9d5E68Ec105046FC4383
 OLD_FACTORY: constant(address) = 0x0959158b6040D32d04c301A72CBFD6b39E21c9AE
 
 admin: public(address)
 future_admin: public(address)
 manager: public(address)
+gauge_controller_proxy: public(address)
 
 pool_list: public(address[4294967296])   # master list of pools
 pool_count: public(uint256)              # actual length of pool_list
@@ -134,6 +146,9 @@ plain_implementations: public(HashMap[uint256, address[10]])
 # fee receiver for plain pools
 fee_receiver: address
 
+# address provider
+address_provider: address
+
 gauge_implementation: public(address)
 
 # mapping of coins -> pools for trading
@@ -144,10 +159,12 @@ market_counts: HashMap[uint256, uint256]
 
 
 @external
-def __init__(_fee_receiver: address):
+def __init__(_fee_receiver: address, _address_provider: address, _gauge_controller_proxy: address):
     self.admin = msg.sender
     self.manager = msg.sender
     self.fee_receiver = _fee_receiver
+    self.address_provider = _address_provider
+    self.gauge_controller_proxy = _gauge_controller_proxy
 
 
 # <--- Factory Getters --->
@@ -603,6 +620,24 @@ def deploy_plain_pool(
     log PlainPoolDeployed(_coins, _A, _fee, msg.sender)
     return pool
 
+@internal
+def _deploy_gauge(_pool: address) -> address:
+    """
+    @notice Deploy a liquidity gauge for a factory pool
+    @param _pool Factory pool address to deploy a gauge for
+    @return Address of the deployed gauge
+    """
+    assert self.pool_data[_pool].coins[0] != ZERO_ADDRESS, "Unknown pool"
+    assert self.pool_data[_pool].liquidity_gauge == ZERO_ADDRESS, "Gauge already deployed"
+    implementation: address = self.gauge_implementation
+    assert implementation != ZERO_ADDRESS, "Gauge implementation not set"
+
+    gauge: address = create_forwarder_to(implementation)
+    LiquidityGauge(gauge).initialize(_pool)
+    self.pool_data[_pool].liquidity_gauge = gauge
+
+    log LiquidityGaugeDeployed(_pool, gauge)
+    return gauge
 
 @external
 def deploy_metapool(
@@ -613,7 +648,7 @@ def deploy_metapool(
     _A: uint256,
     _fee: uint256,
     _implementation_idx: uint256 = 0,
-) -> address:
+) -> (address, address):
     """
     @notice Deploy a new metapool
     @param _base_pool Address of the base pool to use
@@ -634,7 +669,7 @@ def deploy_metapool(
     @param _implementation_idx Index of the implementation to use. All possible
                 implementations for a BASE_POOL can be publicly accessed
                 via `metapool_implementations(BASE_POOL)`
-    @return Address of the deployed pool
+    @return Address of the deployed pool and gauge
     """
     # fee must be between 0.04% and 1%
     assert _fee >= 4000000 and _fee <= 100000000, "Invalid fee"
@@ -678,29 +713,25 @@ def deploy_metapool(
         if is_finished:
             break
 
-    log MetaPoolDeployed(_coin, _base_pool, _A, _fee, msg.sender)
-    return pool
+    gauge: address = self._deploy_gauge(pool)
+    registry: address = AddressProvider(self.address_provider).get_registry()
+    Registry(registry).add_metapool(pool, 2, pool, 0, _name, _base_pool)
+    GaugeControllerProxy(self.gauge_controller_proxy).add_gauge(gauge, 0, 0)
+    gauges: address[10] = empty(address[10])
+    gauges[0] = gauge
+    Registry(registry).set_liquidity_gauges(pool, gauges)
+    log MetaPoolDeployed(pool, _name, _coin, _base_pool, _A, _fee, msg.sender, gauge)
+    return pool, gauge
 
 
 @external
+@payable
+def fund():
+    pass
+
+@external
 def deploy_gauge(_pool: address) -> address:
-    """
-    @notice Deploy a liquidity gauge for a factory pool
-    @param _pool Factory pool address to deploy a gauge for
-    @return Address of the deployed gauge
-    """
-    assert self.pool_data[_pool].coins[0] != ZERO_ADDRESS, "Unknown pool"
-    assert self.pool_data[_pool].liquidity_gauge == ZERO_ADDRESS, "Gauge already deployed"
-    implementation: address = self.gauge_implementation
-    assert implementation != ZERO_ADDRESS, "Gauge implementation not set"
-
-    gauge: address = create_forwarder_to(implementation)
-    LiquidityGauge(gauge).initialize(_pool)
-    self.pool_data[_pool].liquidity_gauge = gauge
-
-    log LiquidityGaugeDeployed(_pool, gauge)
-    return gauge
-
+    return self._deploy_gauge(_pool)
 
 # <--- Admin / Guarded Functionality --->
 
@@ -722,7 +753,7 @@ def add_base_pool(
     assert msg.sender == self.admin  # dev: admin-only function
     assert self.base_pool_data[_base_pool].coins[0] == ZERO_ADDRESS  # dev: pool exists
 
-    registry: address = AddressProvider(ADDRESS_PROVIDER).get_registry()
+    registry: address = AddressProvider(self.address_provider).get_registry()
     n_coins: uint256 = Registry(registry).get_n_coins(_base_pool)
     assert n_coins > 0  # dev: pool not in registry
 
@@ -818,6 +849,7 @@ def batch_set_pool_asset_type(_pools: address[32], _asset_types: uint256[32]):
         self.pool_data[_pools[i]].asset_type = _asset_types[i]
 
 
+
 @external
 def commit_transfer_ownership(_addr: address):
     """
@@ -884,73 +916,4 @@ def convert_metapool_fees() -> bool:
     receiver: address = self.base_pool_data[base_pool].fee_receiver
 
     KaglaPool(msg.sender).exchange(0, 1, amount, 0, receiver)
-    return True
-
-
-# <--- Pool Migration --->
-
-@external
-def add_existing_metapools(_pools: address[10]) -> bool:
-    """
-    @notice Add existing metapools from the old factory
-    @dev Base pools that are used by the pools to be added must
-         be added separately with `add_base_pool`
-    @param _pools Addresses of existing pools to add
-    """
-
-    length: uint256 = self.pool_count
-    for pool in _pools:
-        if pool == ZERO_ADDRESS:
-            break
-
-        assert self.pool_data[pool].coins[0] == ZERO_ADDRESS  # dev: pool already exists
-
-        coins: address[2] = OldFactory(OLD_FACTORY).get_coins(pool)
-        assert coins[0] != ZERO_ADDRESS # dev: pool not in old factory
-
-        # add pool to pool list
-        self.pool_list[length] = pool
-        length += 1
-
-        base_pool: address = ZERO_ADDRESS
-        implementation: address = ZERO_ADDRESS
-
-        if coins[1] == 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490:
-            # 3pool
-            base_pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7
-            implementation = 0x5F890841f657d90E081bAbdB532A05996Af79Fe6
-        elif coins[1] == 0x075b1bb99792c9E1041bA13afEf80C91a1e70fB3:
-            # sbtc
-            base_pool = 0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714
-            implementation = 0x2f956eEe002B0dEbD468CF2E0490d1aEc65e027F
-            self.pool_data[pool].asset_type = 2
-        else:
-            raise
-
-        # update pool data
-        self.pool_data[pool].decimals[0] = ERC20(coins[0]).decimals()
-        self.pool_data[pool].base_pool = base_pool
-        meta_coin: address = KaglaFactoryMetapool(pool).coins(0)
-        self.pool_data[pool].coins[0] = coins[0]
-        self.pool_data[pool].coins[1] = coins[1]
-        self.pool_data[pool].implementation = implementation
-
-        base_pool_coins: address[MAX_COINS] = self.base_pool_data[base_pool].coins
-        assert base_pool_coins[0] != ZERO_ADDRESS # dev: unknown base pool
-
-        is_finished: bool = False
-        for i in range(MAX_COINS):
-            swappable_coin: address = base_pool_coins[i]
-            if swappable_coin == ZERO_ADDRESS:
-                is_finished = True
-                swappable_coin = coins[1]
-
-            key: uint256 = bitwise_xor(convert(meta_coin, uint256), convert(swappable_coin, uint256))
-            market_idx: uint256 = self.market_counts[key]
-            self.markets[key][market_idx] = pool
-            self.market_counts[key] = market_idx + 1
-            if is_finished:
-                break
-
-    self.pool_count = length
     return True
